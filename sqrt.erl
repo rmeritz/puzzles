@@ -1,5 +1,5 @@
 -module(sqrt).
--export([sqrt/1]).
+-export([sqrt/1, sqrt_binary/1]).
 
 % http://www.ardendertat.com/2012/01/26/programming-interview-questions-27-squareroot-of-a-number/
 
@@ -35,3 +35,19 @@ sqrt(N, BottomGuess, _BottomValue, TopGuess, _TopValue) ->
 
 sq(N) ->
     N*N.
+
+
+sqrt_binary(N) when (N >= 0) and (erlang:is_integer(N) or erlang:is_float(N)) ->
+    Guess = erlang:trunc(N/4),
+    sqrt_binary(N,  Guess, sq(Guess));
+sqrt_binary(_N) ->
+    erlang:throw(badarg).
+
+sqrt_binary(N, Guess, GuessSquared) when GuessSquared =:= N ->
+    Guess;
+sqrt_binary(N, Guess, GuessSquared) when GuessSquared > N ->
+    NewGuess = erlang:trunc(Guess/2),
+    sqrt_binary(N, NewGuess, sq(NewGuess));
+sqrt_binary(N, Guess, _) ->
+    NewGuess = erlang:trunc(Guess*2),
+    sqrt_binary(N, NewGuess, sq(NewGuess)).
