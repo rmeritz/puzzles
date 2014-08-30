@@ -10,10 +10,39 @@
 
 
 water_level(L) ->
-    ListWithoutOneEdge = remove_edge(L),
-    Height = side_height(ListWithoutOneEdge),
-    ListWithoutEdges = remove_edge(lists:reverse(ListWithoutOneEdge)),
-    MinHeight = erlang:min(Height, side_height(ListWithoutEdges)),
+    lists:sum(lists:map(fun area_of_pool/1, find_pools(L))).
+
+find_pools([]) -> [];
+find_pools(L) ->
+    {Pool, Rest} = find_a_pool(L),
+    [Pool|find_pools(Rest)].
+
+find_a_pool([A, B |Xs]) when B > A ->
+    {[], [B|Xs]};
+find_a_pool([A, B |Xs]) ->
+    {RestOfPool, RestOfPossiblePools} = up_to_end_of_pool(A, B, Xs),
+    case RestOfPool of
+        [] ->
+            {[], [B|Xs]};
+        _ ->
+            {[A, B| RestOfPool], RestOfPossiblePools}
+    end.
+
+up_to_end_of_pool(_A, _B, []) ->
+    [];
+up_to_end_of_pool(_A, B, [X|[]]) when  X > B ->
+    {[X], []};
+up_to_end_of_pool(_A, _B, [X|[]]) ->
+    {[], [X]};
+up_to_end_of_pool(A, _B, [X|Xs]) when X >= A ->
+    {[X], Xs};
+up_to_end_of_pool(A, B, [X|Xs]) ->
+    {RestOfPool, RestOfPossiblePools} = up_to_end_of_pool(A, B, Xs),
+    {[X|RestOfPool], RestOfPossiblePools}.
+
+
+area_of_pool(Pools = [P1, _P2 |_Ps]) ->
+    MinHeight = erlang:min(P1, lists:last(Pools)),
     lists:foldr(fun(X, Sum) ->
                     S = MinHeight - X,
                     if
@@ -23,22 +52,6 @@ water_level(L) ->
                             Sum
                     end
                     end,
-                    0, ListWithoutEdges).
-
-
-remove_edge([H1, H2|T]) when H2 > H1 ->
-    remove_edge([H2|T]);
-remove_edge([H1, H2|T]) ->
-    [H1, H2|T];
-remove_edge([_]) ->
-    [];
-remove_edge([]) ->
-    [].
-
-side_height(L) ->
-    try
-        erlang:hd(L)
-    catch
-        error:badarg ->
-            0
-    end.
+                    0, Pools);
+area_of_pool([]) -> 0;
+area_of_pool([_]) -> 0.
