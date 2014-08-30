@@ -26,7 +26,9 @@ find_a_pool([A, B |Xs]) ->
             {[], [B|Xs]};
         _ ->
             {[A, B| RestOfPool], RestOfPossiblePools}
-    end.
+    end;
+find_a_pool([_A|[]])->
+    {[], []}.
 
 up_to_end_of_pool(_A, _B, []) ->
     [];
